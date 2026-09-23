@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="ticketDashboardApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticketing Dashboard</title>
+
+  <!-- AngularJS 1.x -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+
+  <!-- Icons -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <link rel="stylesheet" href="style.css">
+  <!-- Used to create a PNG snapshot of the dashboard -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<body ng-controller="DashboardController">
+
+  <div class="app-shell" id="dashboardCapture">
+
+    <!-- Header -->
+    <header class="top-header">
+      <div class="brand-area">
+        <div class="brand-icon"><i class="fa-solid fa-ticket"></i></div>
+        <div>
+          <h1>Ticketing Dashboard</h1>
+          <p>Track <span>•</span> Manage <span>•</span> Resolve</p>
+        </div>
+      </div>
+
+      <div class="updated-area">
+        <i class="fa-regular fa-calendar-days"></i>
+        <div>
+          <span>Last Updated</span>
+          <strong>{{ lastUpdated | date:'dd MMM yyyy' }} &nbsp;|&nbsp; {{ lastUpdated | date:'hh:mm a' }}</strong>
+        </div>
+      </div>
+    </header>
+
+    <!-- Summary Cards -->
+    <section class="summary-grid">
+      <div class="summary-card total">
+        <div class="summary-icon"><i class="fa-solid fa-ticket"></i></div>
+        <div>
+          <p>Total Tickets</p>
+          <h2>{{ stats.total }}</h2>
+        </div>
+      </div>
+
+      <div class="summary-card completed">
+        <div class="summary-icon"><i class="fa-solid fa-check"></i></div>
+        <div>
+          <p>Completed</p>
+          <h2>{{ stats.completed }}</h2>
+        </div>
+      </div>
+
+      <div class="summary-card new">
+        <div class="summary-icon"><i class="fa-solid fa-plus"></i></div>
+        <div>
+          <p>New Tickets</p>
+          <h2>{{ stats.newTickets }}</h2>
+        </div>
+      </div>
+
+      <div class="summary-card development">
+        <div class="summary-icon"><i class="fa-solid fa-code"></i></div>
+        <div>
+          <p>Development</p>
+          <h2>{{ stats.development }}</h2>
+        </div>
+      </div>
+
+      <div class="summary-card support">
+        <div class="summary-icon"><i class="fa-solid fa-users"></i></div>
+        <div>
+          <p>Dev Support</p>
+          <h2>{{ stats.support }}</h2>
+        </div>
+      </div>
+
+      <div class="summary-card pending">
+        <div class="summary-icon"><i class="fa-solid fa-clock"></i></div>
+        <div>
+          <p>Pending</p>
+          <h2>{{ stats.pending }}</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls -->
+    <section class="toolbar">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text"
+               ng-model="searchText"
+               placeholder="Search team member...">
+      </div>
+
+      <select ng-model="statusFilter" class="filter-select">
+        <option value="">All Categories</option>
+        <option value="completed">Completed</option>
+        <option value="newTickets">New Tickets</option>
+        <option value="development">Development</option>
+        <option value="support">Dev Support</option>
+        <option value="pending">Pending</option>
+      </select>
+
+      <select ng-model="sortField" class="filter-select">
+        <option value="name">Sort by Name</option>
+        <option value="total">Sort by Total</option>
+        <option value="pending">Sort by Pending</option>
+        <option value="completed">Sort by Completed</option>
+      </select>
+
+      <button class="secondary-btn" ng-click="downloadDataFile()">
+        <i class="fa-solid fa-file-arrow-down"></i> Export Data
+      </button>
+
+      <button class="snapshot-btn" ng-click="saveSnapshot()">
+        <i class="fa-solid fa-camera"></i> Save Snapshot
+      </button>
+
+      <button class="secondary-btn" ng-click="openAddMember()">
+        <i class="fa-solid fa-user-plus"></i> Add Team Member
+      </button>
+
+      <button class="primary-btn" ng-click="openAddTicket()">
+        <i class="fa-solid fa-plus"></i> Add Ticket
+      </button>
+    </section>
+
+    <!-- Main Table -->
+    <section class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="name-column">
+                <i class="fa-solid fa-users"></i> Name
+              </th>
+              <th>
+                <i class="fa-solid fa-ticket"></i> Total Tickets
+              </th>
+              <th>
+                <i class="fa-solid fa-check"></i> Completed
+              </th>
+              <th>
+                <i class="fa-solid fa-plus"></i> New Tickets
+              </th>
+              <th>
+                <i class="fa-solid fa-code"></i> Development
+              </th>
+              <th>
+                <i class="fa-solid fa-users"></i> Dev Support
+              </th>
+              <th>
+                <i class="fa-solid fa-clock"></i> Pending
+              </th>
+              <th class="actions-column">
+                <i class="fa-solid fa-gear"></i> Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr ng-repeat="member in members | filter:memberFilter | orderBy:sortField:reverseSort">
+              <td class="member-cell">
+                <div class="avatar" ng-class="'avatar-' + ($index % 6)">
+                  {{ member.name.charAt(0).toUpperCase() }}
+                </div>
+                <strong>{{ member.name }}</strong>
+              </td>
+
+              <td class="number total-number">{{ member.total }}</td>
+              <td class="number completed-number">{{ member.completed }}</td>
+              <td class="number new-number">{{ member.newTickets }}</td>
+              <td class="number development-number">{{ member.development }}</td>
+              <td class="number support-number">{{ member.support }}</td>
+              <td class="number pending-number">{{ member.pending }}</td>
+              <td class="actions-cell">
+                <button class="icon-btn edit-btn"
+                        ng-click="openEditMember(member)"
+                        title="Edit team member">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="icon-btn delete-btn"
+                        ng-click="deleteMember(member)"
+                        title="Delete team member">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+
+            <tr ng-if="(members | filter:memberFilter).length === 0">
+              <td colspan="8" class="empty-state">
+                <i class="fa-regular fa-face-frown"></i>
+                <strong>No team members found</strong>
+                <span>Try another search or category.</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Bottom Total -->
+    <section class="team-total">
+      <div class="team-title">
+        <div class="team-icon"><i class="fa-solid fa-users"></i></div>
+        <div>
+          <strong>Total Team</strong>
+          <span>(All Members)</span>
+        </div>
+      </div>
+
+      <div class="bottom-stat total-bottom">
+        <i class="fa-solid fa-ticket"></i>
+        <div><span>Total Tickets</span><strong>{{ stats.total }}</strong></div>
+      </div>
+
+      <div class="bottom-stat completed-bottom">
+        <i class="fa-solid fa-check"></i>
+        <div><span>Completed</span><strong>{{ stats.completed }}</strong></div>
+      </div>
+
+      <div class="bottom-stat new-bottom">
+        <i class="fa-solid fa-plus"></i>
+        <div><span>New Tickets</span><strong>{{ stats.newTickets }}</strong></div>
+      </div>
+
+      <div class="bottom-stat development-bottom">
+        <i class="fa-solid fa-code"></i>
+        <div><span>Development</span><strong>{{ stats.development }}</strong></div>
+      </div>
+
+      <div class="bottom-stat support-bottom">
+        <i class="fa-solid fa-users"></i>
+        <div><span>Dev Support</span><strong>{{ stats.support }}</strong></div>
+      </div>
+
+      <div class="bottom-stat pending-bottom">
+        <i class="fa-solid fa-clock"></i>
+        <div><span>Pending</span><strong>{{ stats.pending }}</strong></div>
+      </div>
+    </section>
+
+    <footer>
+      <span>Ticketing Dashboard</span>
+      <span>AngularJS 1.x • Local Storage Enabled • Snapshots: {{ snapshotHistory.length }}</span>
+      <span class="save-status" ng-if="saveMessage">{{ saveMessage }}</span>
+    </footer>
+  </div>
+
+  <!-- Snapshot History -->
+  <div class="history-card" ng-if="snapshotHistory.length">
+    <div class="history-header">
+      <div>
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Saved Snapshots</h3>
+        <p>Each save records the dashboard data and creates a PNG snapshot.</p>
+      </div>
+      <button class="small-btn" ng-click="clearSnapshotHistory()">
+        Clear History
+      </button>
+    </div>
+
+    <div class="history-list">
+      <div class="history-row" ng-repeat="snapshot in snapshotHistory | orderBy:'-savedAt'">
+        <div>
+          <strong>{{ snapshot.fileName }}</strong>
+          <span>{{ snapshot.savedAt | date:'dd MMM yyyy, hh:mm:ss a' }}</span>
+        </div>
+        <div class="history-counts">
+          <span>Total: {{ snapshot.stats.total }}</span>
+          <span>Pending: {{ snapshot.stats.pending }}</span>
+          <span>New: {{ snapshot.stats.newTickets }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Ticket Modal -->
+  <div class="modal-backdrop" ng-if="showModal" ng-click="closeModal()">
+    <div class="modal" ng-click="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3><i class="fa-solid fa-ticket"></i> Add Ticket</h3>
+          <p>Add a ticket to a team member</p>
+        </div>
+        <button class="close-btn" ng-click="closeModal()">&times;</button>
+      </div>
+
+      <form ng-submit="addTicket()">
+        <label>Team Member</label>
+        <select ng-model="newTicket.member" required>
+          <option value="">Select member</option>
+          <option ng-repeat="member in members" value="{{member.name}}">
+            {{member.name}}
+          </option>
+        </select>
+
+        <label>Number of Tickets</label>
+        <input type="number"
+               ng-model="newTicket.quantity"
+               min="1"
+               max="1000"
+               required
+               class="quantity-input"
+               placeholder="Example: 10">
+
+        <label>Categories <span class="hint">(select one or more)</span></label>
+        <div class="category-check-grid">
+          <label class="category-check completed-check">
+            <input type="checkbox" ng-model="newTicket.categories.completed">
+            <span><i class="fa-solid fa-check"></i> Completed</span>
+          </label>
+          <label class="category-check new-check">
+            <input type="checkbox" ng-model="newTicket.categories.newTickets">
+            <span><i class="fa-solid fa-plus"></i> New Tickets</span>
+          </label>
+          <label class="category-check development-check">
+            <input type="checkbox" ng-model="newTicket.categories.development">
+            <span><i class="fa-solid fa-code"></i> Development</span>
+          </label>
+          <label class="category-check support-check">
+            <input type="checkbox" ng-model="newTicket.categories.support">
+            <span><i class="fa-solid fa-users"></i> Dev Support</span>
+          </label>
+          <label class="category-check pending-check">
+            <input type="checkbox" ng-model="newTicket.categories.pending">
+            <span><i class="fa-solid fa-clock"></i> Pending</span>
+          </label>
+        </div>
+
+        <div class="category-note">
+          <i class="fa-solid fa-circle-info"></i>
+          One ticket quantity can be added to multiple categories at the same time.
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary-btn" ng-click="closeModal()">Cancel</button>
+          <button type="submit" class="primary-btn">
+            <i class="fa-solid fa-plus"></i> Add Ticket
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
+  <!-- Add Team Member Modal -->
+  <div class="modal-backdrop" ng-if="showMemberModal" ng-click="closeMemberModal()">
+    <div class="modal" ng-click="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3>
+            <i class="fa-solid" ng-class="editingMember ? 'fa-user-pen' : 'fa-user-plus'"></i>
+            {{ editingMember ? 'Edit Team Member' : 'Add Team Member' }}
+          </h3>
+          <p>{{ editingMember ? 'Update the team member name' : 'Add a new member to the ticket dashboard' }}</p>
+        </div>
+        <button class="close-btn" ng-click="closeMemberModal()">&times;</button>
+      </div>
+
+      <form ng-submit="saveMember()">
+        <label>Team Member Name</label>
+        <input type="text"
+               ng-model="newMember.name"
+               required
+               class="quantity-input"
+               maxlength="80"
+               placeholder="Example: New Team Member">
+
+        <div class="modal-actions">
+          <button type="button" class="secondary-btn" ng-click="closeMemberModal()">Cancel</button>
+          <button type="submit" class="primary-btn">
+            <i class="fa-solid" ng-class="editingMember ? 'fa-floppy-disk' : 'fa-user-plus'"></i>
+            {{ editingMember ? 'Save Changes' : 'Add Member' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

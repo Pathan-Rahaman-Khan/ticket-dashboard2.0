@@ -1,0 +1,76 @@
+{
+  "savedAt": "initial-zero-state",
+  "stats": {
+    "total": 0,
+    "completed": 0,
+    "newTickets": 0,
+    "development": 0,
+    "support": 0,
+    "pending": 0
+  },
+  "members": [
+    {
+      "name": "Divya",
+      "total": 0,
+      "completed": 0,
+      "newTickets": 0,
+      "development": 0,
+      "support": 0,
+      "pending": 0
+    },
+    {
+      "name": "pathan munna",
+      "total": 0,
+      "completed": 0,
+      "newTickets": 0,
+      "development": 0,
+      "support": 0,
+      "pending": 0
+    },
+    {
+      "name": "Afrana Shaik",
+      "total": 0,
+      "completed": 0,
+      "newTickets": 0,
+      "development": 0,
+      "support": 0,
+      "pending": 0
+    },
+    {
+      "name": "Subhani Shaik",
+      "total": 0,
+      "completed": 0,
+      "newTickets": 0,
+      "development": 0,
+      "support": 0,
+      "pending": 0
+    },
+    {
+      "name": "SivaPrasad Boddeda",
+      "total": 0,
+      "completed": 0,
+      "newTickets": 0,
+      "development": 0,
+      "support": 0,
+      "pending": 0
+    },
+    {
+      "name": "Jagadeswari Perni",
+      "total": 0,
+      "completed": 0,
+      "newTickets": 0,
+      "development": 0,
+      "support": 0,
+      "pending": 0
+    },
+    {
+      "name": "Pathan Rahaman Khan",
+      "total": 0,
+      "completed": 0,
+      "newTickets": 0,
+      "development": 0,
+      "support": 0,
+      "pending": 0
+    }
+  ]
+}
